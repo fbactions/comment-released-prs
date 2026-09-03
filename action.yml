@@ -1,0 +1,37 @@
+name: Comment Released PRs
+description: Comment on every pull request included in a published GitHub release
+branding:
+  icon: message-square
+  color: green
+inputs:
+  tag:
+    description: Tag of the release to read. Defaults to the tag that triggered the workflow.
+    default: ${{ github.ref_name }}
+  comment:
+    description: Comment body. `{tag}` and `{url}` are replaced with the tag and the URL of the release.
+    default: '🎉 Released in [{tag}]({url})'
+  token:
+    description: "Token with `pull-requests: write` permission, and `contents: read` to view the release."
+    default: ${{ github.token }}
+  dry-run:
+    description: Log the pull requests that would be commented on without commenting.
+    default: 'false'
+outputs:
+  pull-requests:
+    description: Space-separated numbers of the pull requests linked in the release notes.
+    value: ${{ steps.comment.outputs.pull-requests }}
+  release-url:
+    description: URL of the release.
+    value: ${{ steps.comment.outputs.release-url }}
+runs:
+  using: composite
+  steps:
+    - id: comment
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/comment.sh"
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GH_REPO: ${{ github.repository }}
+        TAG: ${{ inputs.tag }}
+        COMMENT: ${{ inputs.comment }}
+        DRY_RUN: ${{ inputs.dry-run }}
