@@ -1,0 +1,23 @@
+name: ci
+on:
+  push:
+    branches: [master]
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: shellcheck comment.sh
+      - id: latest
+        run: echo "tag=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.latest.outputs.tag
+        uses: ./
+        with:
+          tag: ${{ steps.latest.outputs.tag }}
+          dry-run: true
